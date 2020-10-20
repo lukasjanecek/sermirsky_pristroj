@@ -1,2 +1,2 @@
 # sermirsky_pristroj
-všechnooo
+
