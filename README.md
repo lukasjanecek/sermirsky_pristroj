@@ -1,2 +1,0 @@
-# sermirsky_pristroj
-
