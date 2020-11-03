@@ -1,0 +1,110 @@
+// Arduino Bluetooth modul HM-10
+
+// nastavení propojovacích pinů Bluetooth 
+#define RX 11
+#define TX 10
+// připojení knihovny SoftwareSerial
+#include <SoftwareSerial.h>
+// inicializace Bluetooth modulu z knihovny SoftwareSerial
+SoftwareSerial bluetooth(TX, RX);
+int cislo, a=0, pom;
+
+void fce1(){
+  do{
+  Serial.print("Zadej cislo:"); 
+  bluetooth.print("Zadej cislo:");
+  delay(1000);
+  //while(Serial.available()==0){}  
+  while(bluetooth.available()>0) {
+  cislo = bluetooth.parseInt(); 
+  
+  pom = bluetooth.parseInt();
+  
+  if (pom>='0' && pom <= '9') {
+    cislo = (cislo*10) + (cislo-'0');
+  }
+  }
+  
+  Serial.println(cislo);
+  bluetooth.println(cislo);
+  a = cislo + 1;
+  Serial.print("Nasledujici cislo:");
+  bluetooth.print("Nasledujici cislo:");
+  Serial.println(a);
+  bluetooth.println(a);
+  delay(2000);
+  } while (cislo<100 && a<100);
+}
+
+  
+void setup() {
+  // zahájení komunikace s Bluetooth modulem a po sériové lince
+  
+  bluetooth.begin(9600);
+  bluetooth.println("Arduino zapnuto, test Bluetooth.");
+ 
+  Serial.begin(9600);
+  Serial.println("Arduino zapnuto, test Bluetooth.");
+  
+}
+
+void loop() {
+  
+  int BluetoothData;
+  
+  //bluetooth.println("Nacitam zpravu: ");
+  Serial.println("Zadej poradi volane fce (1 nebo 2): ");
+  bluetooth.println("Zadej poradi volane fce (1 nebo 2):");
+  delay(2000);
+   /* while(bluetooth.available()==0){
+    bluetooth.println("Hodnota nezadana");
+    Serial.println("Hodnota nezadana");
+    delay(10000);
+    } //funguje vždy a pořád */
+    
+  while (bluetooth.available() > 0) {
+ 
+/*BluetoothData=bluetooth.read(); ?
+  bluetooth.write(BluetoothData); ? x.write k čemu to slouží?
+  Serial.write(BluetoothData); ? */
+  
+  BluetoothData=bluetooth.parseInt();
+  delay(1000);
+  
+  bluetooth.print("Prijal jsem hodnotu :");
+  Serial.print("Prijal jsem hodnotu: ");
+  bluetooth.println(BluetoothData); 
+  Serial.println(BluetoothData);
+  /*bluetooth.println(BluetoothData); ?*/
+  /*bluetooth.read(); ? k čeme slouží*/
+  
+  switch (BluetoothData) { //není potřeba přepsat proměnnou na něco jiného či něco připsat
+  
+  case 1:
+  Serial.println("Komunikace zacala \n");
+  bluetooth.println("Komunikace zacala \n");
+  Serial.println("Az cislo presahne 100, tak komunikace skonci \n");
+  bluetooth.println("Az cislo presahne 100, tak komunikace skonci \n");
+  fce1();
+  Serial.println("Konec komunikace");
+  bluetooth.println("Konec komunikace");
+  break;
+  
+  case 2:
+  // čas od spuštění Arduina
+    bluetooth.print("Cas od spusteni Arduina: ");
+    bluetooth.print(millis()/1000);
+    bluetooth.println(" vterin.");    
+  break;
+
+  default:
+  bluetooth.println("Chybne zadani");
+  bluetooth.println(BluetoothData);
+  break;
+  }
+  }
+  
+  // krátká pauza mezi kontrolami komunikace Bluetooth modulu
+  delay(5000);
+ 
+}
