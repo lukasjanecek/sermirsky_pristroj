@@ -5,6 +5,10 @@
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
+int h=23;
+int m=58;
+int s=0;
+
 void setup() {
   // put your setup code here, to run once:
 Serial.begin(115200);
@@ -18,19 +22,40 @@ display.clearDisplay();
 
 void loop() {
   // put your main code here, to run repeatedly:
+  
 display.clearDisplay();
 display.setTextColor(WHITE);
 display.setCursor(0,0);
-display.setTextSize(2);
-display.println("Testovani");
+
 display.setTextSize(1);
-//display.println("\n");  
+display.print("Cas: ");
+display.setTextSize(2);
+display.print(h);
+display.print(":");
+display.print(m);
+display.setTextSize(1);
+display.print(s);
+display.println("\n");
 display.println("\n");
 display.println("\n");
 display.setTextSize(2);
 display.println("1  0:00  2");
 display.display();
 delay(50);
-}
 
+s=s+1;  
+if(s==60){
+s=0;
+m=m+1;
+}
+if(m==60){
+m=0;
+h=h+1;
+}
+if(h==24){
+h=00;
+}
+delay(1000);
+
+}
 
