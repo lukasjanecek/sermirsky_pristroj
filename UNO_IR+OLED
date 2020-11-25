@@ -1,0 +1,177 @@
+//knihovny pro OLED
+#include <Adafruit_SSD1306.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 64 // OLED display height, in pixels
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+//knihovna pro IR
+#include <IRremote.h>
+
+// definování pinu přijímače IR
+int const IRpin = 2;
+IRrecv irrecv(IRpin);
+// uložení signálu do proměné "results"
+decode_results results;
+
+//proměnné OLED
+int h=23;
+int m=58;
+int s=0;
+
+//společné proměnné
+int BodyL=0;
+int BodyP=0;
+
+void setup() {
+  // put your setup code here, to run once:
+
+//IR
+// zapnutí komunikace
+Serial.begin(9600);
+// start přijímače
+irrecv.enableIRIn(); 
+
+//OLED
+Serial.begin(115200);
+
+if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { 
+  Serial.println(F("SSD1306 allocation failed"));
+}
+delay(2000);
+display.clearDisplay();
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+
+//IR
+// pokud obdržíš signál, tak jeho hodnotu vypiš v DEC soustavě (desítková)
+  if (irrecv.decode(&results)) 
+    {
+      Serial.println(results.value, DEC); 
+      // obdrž další hodnotu
+      irrecv.resume(); 
+      // počkej 1s
+      delay(1000);
+    }
+
+switch (results.value) {
+
+  case 3810010651: //1 //+1 na leve strane
+  Serial.println("1");
+  BodyL=BodyL+1;
+  break;
+  case 5316027: //2 // //set casu (+1 minuta za zmacknuti)
+  Serial.println("2");
+  break;
+  case 4001918335: //3 //+1 na prave strane
+  Serial.println("3");
+  BodyP=BodyP+1;
+  break;
+  case 1386468383: //4 //-1 na leve strane
+  Serial.println("4");
+  BodyL=BodyL-1;
+  break;
+  case 3622325019: //5 //reset na default 3 minuty
+  Serial.println("5");
+  break;
+  case 553536955: //6 //-1 na prave strane
+  Serial.println("6");
+  BodyP=BodyP-1;
+  break;
+  case 4034314555: //7
+  Serial.println("7");
+  break;
+  case 2747854299: //8
+  Serial.println("8");
+  break;
+  case 3855596927: //9
+  Serial.println("9");
+  break;
+  case 3238126971: //*
+  Serial.println("*");
+  break;
+  case 2538093563: //0
+  Serial.println("0");
+  break;
+  case 4039382595: //#
+  Serial.println("#");
+  break;
+  case 2351064443: //sipka doleva
+  Serial.println("sipka doleva");
+  break;
+  case 71952287: //sipka doprava
+  Serial.println("sipka doprava");
+  break;
+  case 1033561079: //sipka nahoru
+  Serial.println("sipka nahoru");
+  break;
+  case 465573243: //sipka dolu
+  Serial.println("sipka dolu");
+  break;
+  case 1217346747: //OK //stop/play
+  Serial.println("KO");
+  break; 
+  }
+
+//OLED
+display.clearDisplay();
+display.setTextColor(WHITE);
+display.setCursor(0,0);
+
+//tisk casu
+display.setTextSize(1);
+display.print("Cas: ");
+display.setTextSize(2);
+display.print(h);
+display.print(":");
+display.print(m);
+display.setTextSize(1);
+display.print(s);
+
+display.println("\n");
+display.println("\n");
+display.println("\n");
+
+//tisk bodů
+display.setTextSize(2);
+display.print(BodyL);
+//display.print(" 0:00 ");
+display.print(" ");
+display.print(m);
+display.print(":");
+display.print(s);
+display.print(" ");
+display.print(BodyP);
+
+display.display();
+delay(50);
+
+//stopky
+s=s-1;
+if (s=0) {
+  s=59;
+  m=m-1;
+}
+if (m=60) {
+  m=0;
+}
+
+//cas 
+s=s+1;  
+if (s==60) {
+s=0;
+m=m+1;
+}
+if (m==60) {
+m=0;
+h=h+1;
+}
+if (h==24) {
+h=00;
+}
+delay(1000);
+
+}
+
