@@ -19,8 +19,8 @@ IRrecv irrecv(IRpin);
 decode_results results;
 
 //BT
-SoftwareSerial bluetoothL(5, 6);    //TX, RX
-SoftwareSerial bluetoothP(10, 11);  //TX, RX
+SoftwareSerial bluetoothP(3, 4);    //TX, RX
+SoftwareSerial bluetoothL(10, 11);  //TX, RX
 
 //proměnné OLED
 //čas
@@ -31,14 +31,14 @@ int BodyL=0;
 int BodyP=0;
 
 //LED
-int LEDbila1 = 52;
-int LEDbila2 = 53;
+int LEDbila1 = 23;
+int LEDbila2 = 24;
 int LEDbila3 = 50;
-int LEDbila4 = 51;
-int LEDcervena1 = 49;
-int LEDcervena2 = 48;
-int LEDzelena1 = 46;
-int LEDzelena2 = 47;
+int LEDbila4 = 53;
+int LEDcervena1 = 42;
+int LEDcervena2 = 45;
+int LEDzelena1 = 31;
+int LEDzelena2 = 32;
 int bzucakRED = 9;
 int bzucakGREEN = 8;
 
@@ -80,19 +80,8 @@ pinMode(bzucakGREEN, OUTPUT);
 digitalWrite(bzucakGREEN, LOW);
 
 //BT
-bluetoothL.begin(115200);
+bluetoothL.begin(9600);
 bluetoothP.begin(9600);  
-
-bluetoothL.println("AT");
-delay(200);
-bluetoothL.println("AT+ROLE1");
-delay(200);
-bluetoothL.println("AT+IMME1");
-delay(200);
-bluetoothL.println("AT+NAME=MASTER1");
-delay(2000);
-bluetoothL.println("AT+CONA0013AA00C2B8");
-delay(200);
 
 bluetoothP.println("AT");
 delay(500);
@@ -100,9 +89,20 @@ bluetoothP.println("AT+ROLE1");
 delay(500);
 bluetoothP.println("AT+IMME1");
 delay(500);
-bluetoothP.println("AT+NAME=MASTER2");
+bluetoothP.println("AT+NAME=MASTER1");
 delay(500);
-bluetoothP.println("AT+CONA882583F062E2");
+bluetoothP.println("AT+CONA0013AA00C2B8");//0013AA00C2B8
+delay(500);
+
+bluetoothL.println("AT");
+delay(500);
+bluetoothL.println("AT+ROLE1");
+delay(500);
+bluetoothL.println("AT+IMME1");
+delay(500);
+bluetoothL.println("AT+NAME=MASTER2");
+delay(500);
+bluetoothL.println("AT+CONA882583F062E2");//882583F062E2
 delay(500);
     
 }
@@ -214,6 +214,7 @@ display.clearDisplay();
 display.setTextColor(WHITE);
 display.setCursor(0,0);
 display.setTextSize(1);
+
 //tisk bodů
 display.setTextSize(2);
 display.print(BodyL);
@@ -225,12 +226,14 @@ display.print("  ");
 display.print(BodyP);
 display.display();
 delay(50);
+
 //stopky
 s=s-1;
 if (s==-1) {
   s=59;
   m=m-1;
 }
+
 //konec zapasu
 if(m==0 && s==0){
 display.clearDisplay();
@@ -247,11 +250,11 @@ BodyP=0;
 delay(1000);
 }
 
-//rozliseni zasahu
+//rozliseni zasahu, bylo by vhodné prakticky ověřit
 
 if (bluetoothL.available() && bluetoothP.available()) {
-  //Serial.write(bluetooth1.read() );
-  //Serial.write(bluetooth2.read() );
+  Serial.println(bluetoothL.read() );
+  Serial.println(bluetoothP.read() );
   if (bluetoothL.read()==2 && bluetoothP.read()==2) {  //bod L platny
       digitalWrite(LEDzelena1, HIGH);
       digitalWrite(LEDzelena2, HIGH);
@@ -261,7 +264,7 @@ if (bluetoothL.available() && bluetoothP.available()) {
       digitalWrite(LEDzelena2, LOW);
       digitalWrite(bzucakGREEN, LOW);
   }
-  if (bluetoothL.read()==3 && bluetoothP.read()==3 ) {  //bod L neplatny
+  if (bluetoothL.read()==2 && bluetoothP.read()==3) {  //bod L neplatny
       digitalWrite(LEDbila1, HIGH);
       digitalWrite(LEDbila2, HIGH);
       digitalWrite(bzucakGREEN, HIGH);
@@ -270,7 +273,7 @@ if (bluetoothL.available() && bluetoothP.available()) {
       digitalWrite(LEDbila2, LOW);
       digitalWrite(bzucakGREEN, LOW);
   }
-  if (bluetoothL.read()==4 && bluetoothP.read()==4 ) {  //bod P platny
+  if (bluetoothL.read()==4 && bluetoothP.read()==4) {  //bod P platny
       digitalWrite(LEDcervena1, HIGH);
       digitalWrite(LEDcervena2, HIGH);
       digitalWrite(bzucakRED, HIGH);
@@ -279,7 +282,7 @@ if (bluetoothL.available() && bluetoothP.available()) {
       digitalWrite(LEDcervena2, LOW);
       digitalWrite(bzucakRED, LOW);
   }
-  if (bluetoothL.read()==5 && bluetoothP.read()==5 ) {  //bod P neplatny
+  if (bluetoothL.read()==5 && bluetoothP.read()==4) {  //bod P neplatny
       digitalWrite(LEDbila3, HIGH);
       digitalWrite(LEDbila4, HIGH);
       digitalWrite(bzucakRED, HIGH);
@@ -288,7 +291,67 @@ if (bluetoothL.available() && bluetoothP.available()) {
       digitalWrite(LEDbila4, LOW);
       digitalWrite(bzucakRED, LOW);
   }
-  
+  /*zasahy zaroven, NUTNO OTESTOVAT
+  if ((bluetoothL.read()==2 && bluetoothP.read()==2) && (bluetoothL.read()==3 && bluetoothP.read()==3)) {  //bod P platny + bod L platny
+  digitalWrite(LEDzelena1, HIGH);
+  digitalWrite(LEDzelena2, HIGH);
+  digitalWrite(bzucakGREEN, HIGH);
+  digitalWrite(LEDcervena1, HIGH);
+  digitalWrite(LEDcervena2, HIGH);
+  digitalWrite(bzucakRED, HIGH);
+  delay(3000);
+  digitalWrite(LEDzelena1, LOW);
+  digitalWrite(LEDzelena2, LOW);
+  digitalWrite(bzucakGREEN, LOW);
+  digitalWrite(LEDcervena1, LOW);
+  digitalWrite(LEDcervena2, LOW);
+  digitalWrite(bzucakRED, LOW);  
+  }
+  if ((bluetoothL.read()==2 && bluetoothP.read()==2) && (bluetoothL.read()==5 && bluetoothP.read()==5)) {  //bod P platny + bod L neplatny
+  digitalWrite(LEDzelena1, HIGH);
+  digitalWrite(LEDzelena2, HIGH);
+  digitalWrite(bzucakGREEN, HIGH);
+  digitalWrite(LEDbila3, HIGH);
+  digitalWrite(LEDbila4, HIGH);
+  digitalWrite(bzucakRED, HIGH);
+  delay(3000);
+  digitalWrite(LEDzelena1, LOW);
+  digitalWrite(LEDzelena2, LOW);
+  digitalWrite(bzucakGREEN, LOW);
+  digitalWrite(LEDbila3, LOW);
+  digitalWrite(LEDbila4, LOW);
+  digitalWrite(bzucakRED, LOW);    
+  }
+  if ((bluetoothL.read()==3 && bluetoothP.read()==3) && (bluetoothL.read()==3 && bluetoothP.read()==3)) {  //bod P neplatny + bod L platny
+  digitalWrite(LEDbila1, HIGH);
+  digitalWrite(LEDbila2, HIGH);
+  digitalWrite(bzucakGREEN, HIGH);
+  digitalWrite(LEDcervena1, HIGH);
+  digitalWrite(LEDcervena2, HIGH);
+  digitalWrite(bzucakRED, HIGH);
+  delay(3000);
+  digitalWrite(LEDbila1, LOW);
+  digitalWrite(LEDbila2, LOW);
+  digitalWrite(bzucakGREEN, LOW);
+  digitalWrite(LEDcervena1, LOW);
+  digitalWrite(LEDcervena2, LOW);
+  digitalWrite(bzucakRED, LOW);    
+  }
+  if ((bluetoothL.read()==3 && bluetoothP.read()==3) && (bluetoothL.read()==5 && bluetoothP.read()==5)) {  //bod P neplatny + bod L neplatny
+  digitalWrite(LEDbila1, HIGH);
+  digitalWrite(LEDbila2, HIGH);
+  digitalWrite(bzucakGREEN, HIGH);
+  digitalWrite(LEDbila3, HIGH);
+  digitalWrite(LEDbila4, HIGH);
+  digitalWrite(bzucakRED, HIGH);
+  delay(3000);
+  digitalWrite(LEDbila1, LOW);
+  digitalWrite(LEDbila2, LOW);
+  digitalWrite(bzucakGREEN, LOW);
+  digitalWrite(LEDbila3, LOW);
+  digitalWrite(LEDbila4, LOW);
+  digitalWrite(bzucakRED, LOW);    
+  }
+}*/
 }
-
 }
