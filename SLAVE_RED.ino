@@ -1,6 +1,7 @@
+//cervena
 #include <SoftwareSerial.h>
 
-SoftwareSerial bluetoothL(10, 11);  //TX, RX
+SoftwareSerial bluetoothL(10, 11);  //RX,TX
 
 int fleret, vesta, zasah;
 
@@ -11,13 +12,13 @@ void setup()
     Serial.begin(9600);     
  
     // Start software serial komunikaci se spárovaným zařízením
-    bluetoothL.begin(115200);  
+    bluetoothL.begin(9600);  
  
     Serial.println("");
-    Serial.println("nastavit NL & CR v serial monitoru!!!");
-    Serial.println("Jedem");
+    Serial.println("nastavit NL & CR v serial monitoru");
+    Serial.println("Ready");
     Serial.println(""); 
-    
+
     bluetoothL.println("AT");
     delay(500);
     bluetoothL.println("AT+DEFAULT");
@@ -26,9 +27,9 @@ void setup()
     delay(500);
     bluetoothL.println("AT+IMME1");
     delay(500);
-    bluetoothL.println("AT+LADDR");
+    bluetoothL.println("AT+NAME==SLAVE2");
     delay(500);
-    bluetoothL.println("AT+NAME=SLAVE1");
+    bluetoothL.println("AT+LADDR");
     delay(500);
     
     pinMode(A2, INPUT);
@@ -36,23 +37,24 @@ void setup()
 
     pinMode(LEDindikace, OUTPUT);
     digitalWrite(LEDindikace, LOW);
+   
     
 }
  
 void loop() 
 {
-    vesta = analogRead(A2);
-    fleret = analogRead(A4);
+    fleret = analogRead(A2);
+    vesta = analogRead(A4);
 
     //vypis hodnot
     Serial.print("Vesta:");
     Serial.println(vesta);
-    Serial.println("Fleret:");
-    Serial.print(fleret);
+    Serial.print("Fleret:");
+    Serial.println(fleret);
     delay(1000);
     
     //blikání LED (indikace connected) 
-    if (bluetoothL.read()<1) {
+    if (bluetoothL.available()<1) {
     digitalWrite(LEDindikace, HIGH);
     delay(2000);
     digitalWrite(LEDindikace, LOW);
@@ -62,20 +64,20 @@ void loop()
     }
 
     //rozliseni zasahu
-    if (fleret>0 && ((vesta<(fleret+60) || vesta>(fleret-60) ) ) ) {  //bod L platny
-      bluetoothL.write(2);
+    if (fleret>0) {  //bod L platny
+    bluetoothL.write(2);
     }
-    else if (fleret>0 && fleret<vesta ) {  //bod L neplatny
+    /*else if (fleret>0) {  //bod L neplatny      useless navíc, zbytečně plete kod
     bluetoothL.write(3);  
-    } 
-    else if (fleret=0 && vesta>70 && vesta<90) {  //bod P platny
-    bluetoothL.write(4);  
+    } */ 
+    else if (vesta<10) {  //bod P platny
+    bluetoothL.write(4); 
     }
-    else if (fleret=0 && vesta>94) {  //bod P neplatny
+    else if (vesta>0) {  //bod P neplatny
     bluetoothL.write(5);  
     }
     else {
     bluetoothL.write(1);
     }
-     
+        
 }
