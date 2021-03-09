@@ -35,8 +35,9 @@ void setup()
     pinMode(A2, INPUT);
     pinMode(A4, INPUT);
 
+    //signalizace LED (indikace baterie)
     pinMode(LEDindikace, OUTPUT);
-    digitalWrite(LEDindikace, LOW);
+    digitalWrite(LEDindikace, HIGH);
     
 }
  
@@ -51,16 +52,6 @@ void loop()
     Serial.print("Fleret:");
     Serial.println(fleret);
     delay(1000);
-    
-    //blikání LED (indikace connected) 
-    if (bluetoothP.available()<1) {
-    digitalWrite(LEDindikace, HIGH);
-    delay(2000);
-    digitalWrite(LEDindikace, LOW);
-    }
-    else {
-    digitalWrite(LEDindikace, HIGH);
-    }
 
     //rozliseni zasahu
     if (vesta=0) {  //bod L platny
