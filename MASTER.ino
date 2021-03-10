@@ -12,6 +12,12 @@
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
+//fce
+void bodPplatny();
+void bodPneplatny();
+void bodLplatny();
+void bodLneplatny();
+
 // definování pinu přijímače IR
 int const IRpin = 2;
 IRrecv irrecv(IRpin);
@@ -44,7 +50,7 @@ int bzucakGREEN = 8;
 
 void setup() {
   // put your setup code here, to run once:
-Serial.begin(115200);
+Serial.begin(9600);
 
 //OLED
 if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { 
@@ -91,7 +97,7 @@ bluetoothP.println("AT+IMME1");
 delay(500);
 bluetoothP.println("AT+NAME=MASTER1");
 delay(500);
-bluetoothP.println("AT+CONA0013AA00C2B8");//0013AA00C2B8
+bluetoothP.println("AT+CONA882583F062E2");//0013AA00C2B8 modra
 delay(500);
 
 bluetoothL.println("AT");
@@ -102,7 +108,7 @@ bluetoothL.println("AT+IMME1");
 delay(500);
 bluetoothL.println("AT+NAME=MASTER2");
 delay(500);
-bluetoothL.println("AT+CONA882583F062E2");//882583F062E2
+bluetoothL.println("AT+CONA0013AA00C2B8");//882583F062E2 cervena
 delay(500);
     
 }
@@ -229,6 +235,7 @@ delay(50);
 
 //stopky
 s=s-1;
+delay(1000);
 if (s==-1) {
   s=59;
   m=m-1;
@@ -251,107 +258,60 @@ delay(1000);
 }
 
 //rozliseni zasahu, bylo by vhodné prakticky ověřit
+Serial.print("Bluetooth L:");
+Serial.println(bluetoothL.read());
+Serial.print("Bluetooth P:");
+Serial.println(bluetoothP.read());
 
-if (bluetoothL.available() && bluetoothP.available()) {
-  Serial.println(bluetoothL.read() );
-  Serial.println(bluetoothP.read() );
-  if (bluetoothL.read()==2 && bluetoothP.read()==2) {  //bod L platny
-      digitalWrite(LEDzelena1, HIGH);
-      digitalWrite(LEDzelena2, HIGH);
-      digitalWrite(bzucakGREEN, HIGH);
-      delay(3000);
-      digitalWrite(LEDzelena1, LOW);
-      digitalWrite(LEDzelena2, LOW);
-      digitalWrite(bzucakGREEN, LOW);
+  if (bluetoothL.read()==2 && bluetoothP.read()==2) {  //bod L platny, P vesta = 0, L fleret>0
+      bodLplatny;
   }
-  if (bluetoothL.read()==2 && bluetoothP.read()==3) {  //bod L neplatny
-      digitalWrite(LEDbila1, HIGH);
-      digitalWrite(LEDbila2, HIGH);
-      digitalWrite(bzucakGREEN, HIGH);
-      delay(3000);
-      digitalWrite(LEDbila1, LOW);
-      digitalWrite(LEDbila2, LOW);
-      digitalWrite(bzucakGREEN, LOW);
+  if (bluetoothL.read()==2 && bluetoothP.read()==3) {  //bod L neplatny, P vesta > 0, L fleret >0 
+      bodLneplatny;
   }
-  if (bluetoothL.read()==4 && bluetoothP.read()==4) {  //bod P platny
-      digitalWrite(LEDcervena1, HIGH);
-      digitalWrite(LEDcervena2, HIGH);
-      digitalWrite(bzucakRED, HIGH);
-      delay(3000);
-      digitalWrite(LEDcervena1, LOW);
-      digitalWrite(LEDcervena2, LOW);
-      digitalWrite(bzucakRED, LOW);
+  if (bluetoothL.read()==4 && bluetoothP.read()==4) {  //bod P platny, P fleret>0, L vesta<10
+     bodPplatny; 
   }
-  if (bluetoothL.read()==5 && bluetoothP.read()==4) {  //bod P neplatny
-      digitalWrite(LEDbila3, HIGH);
-      digitalWrite(LEDbila4, HIGH);
-      digitalWrite(bzucakRED, HIGH);
-      delay(3000);
-      digitalWrite(LEDbila3, LOW);
-      digitalWrite(LEDbila4, LOW);
-      digitalWrite(bzucakRED, LOW);
+  if (bluetoothL.read()==5 && bluetoothP.read()==4) {  //bod P neplatny, P fleret>0, L vesta>=10
+    bodPneplatny;  
   }
-  /*zasahy zaroven, NUTNO OTESTOVAT
-  if ((bluetoothL.read()==2 && bluetoothP.read()==2) && (bluetoothL.read()==3 && bluetoothP.read()==3)) {  //bod P platny + bod L platny
-  digitalWrite(LEDzelena1, HIGH);
-  digitalWrite(LEDzelena2, HIGH);
-  digitalWrite(bzucakGREEN, HIGH);
-  digitalWrite(LEDcervena1, HIGH);
-  digitalWrite(LEDcervena2, HIGH);
-  digitalWrite(bzucakRED, HIGH);
-  delay(3000);
-  digitalWrite(LEDzelena1, LOW);
-  digitalWrite(LEDzelena2, LOW);
-  digitalWrite(bzucakGREEN, LOW);
-  digitalWrite(LEDcervena1, LOW);
-  digitalWrite(LEDcervena2, LOW);
-  digitalWrite(bzucakRED, LOW);  
-  }
-  if ((bluetoothL.read()==2 && bluetoothP.read()==2) && (bluetoothL.read()==5 && bluetoothP.read()==5)) {  //bod P platny + bod L neplatny
-  digitalWrite(LEDzelena1, HIGH);
-  digitalWrite(LEDzelena2, HIGH);
-  digitalWrite(bzucakGREEN, HIGH);
-  digitalWrite(LEDbila3, HIGH);
-  digitalWrite(LEDbila4, HIGH);
-  digitalWrite(bzucakRED, HIGH);
-  delay(3000);
-  digitalWrite(LEDzelena1, LOW);
-  digitalWrite(LEDzelena2, LOW);
-  digitalWrite(bzucakGREEN, LOW);
-  digitalWrite(LEDbila3, LOW);
-  digitalWrite(LEDbila4, LOW);
-  digitalWrite(bzucakRED, LOW);    
-  }
-  if ((bluetoothL.read()==3 && bluetoothP.read()==3) && (bluetoothL.read()==3 && bluetoothP.read()==3)) {  //bod P neplatny + bod L platny
-  digitalWrite(LEDbila1, HIGH);
-  digitalWrite(LEDbila2, HIGH);
-  digitalWrite(bzucakGREEN, HIGH);
-  digitalWrite(LEDcervena1, HIGH);
-  digitalWrite(LEDcervena2, HIGH);
-  digitalWrite(bzucakRED, HIGH);
-  delay(3000);
-  digitalWrite(LEDbila1, LOW);
-  digitalWrite(LEDbila2, LOW);
-  digitalWrite(bzucakGREEN, LOW);
-  digitalWrite(LEDcervena1, LOW);
-  digitalWrite(LEDcervena2, LOW);
-  digitalWrite(bzucakRED, LOW);    
-  }
-  if ((bluetoothL.read()==3 && bluetoothP.read()==3) && (bluetoothL.read()==5 && bluetoothP.read()==5)) {  //bod P neplatny + bod L neplatny
-  digitalWrite(LEDbila1, HIGH);
-  digitalWrite(LEDbila2, HIGH);
-  digitalWrite(bzucakGREEN, HIGH);
-  digitalWrite(LEDbila3, HIGH);
-  digitalWrite(LEDbila4, HIGH);
-  digitalWrite(bzucakRED, HIGH);
-  delay(3000);
-  digitalWrite(LEDbila1, LOW);
-  digitalWrite(LEDbila2, LOW);
-  digitalWrite(bzucakGREEN, LOW);
-  digitalWrite(LEDbila3, LOW);
-  digitalWrite(LEDbila4, LOW);
-  digitalWrite(bzucakRED, LOW);    
-  }
-}*/
+
 }
+
+//fce
+void bodPplatny() {
+  digitalWrite(LEDcervena1, HIGH);
+  digitalWrite(LEDcervena2, HIGH);
+  digitalWrite(bzucakRED, HIGH);
+  delay(3000);
+  digitalWrite(LEDcervena1, LOW);
+  digitalWrite(LEDcervena2, LOW);
+  digitalWrite(bzucakRED, LOW);
+}
+void bodPneplatny() {
+  digitalWrite(LEDbila3, HIGH);
+  digitalWrite(LEDbila4, HIGH);
+  digitalWrite(bzucakRED, HIGH);
+  delay(3000);
+  digitalWrite(LEDbila3, LOW);
+  digitalWrite(LEDbila4, LOW);
+  digitalWrite(bzucakRED, LOW);
+}
+void bodLplatny() {
+  digitalWrite(LEDzelena1, HIGH);
+  digitalWrite(LEDzelena2, HIGH);
+  digitalWrite(bzucakGREEN, HIGH);
+  delay(3000);
+  digitalWrite(LEDzelena1, LOW);
+  digitalWrite(LEDzelena2, LOW);
+  digitalWrite(bzucakGREEN, LOW);
+}
+void bodLneplatny() {
+  digitalWrite(LEDbila1, HIGH);
+  digitalWrite(LEDbila2, HIGH);
+  digitalWrite(bzucakGREEN, HIGH);
+  delay(3000);
+  digitalWrite(LEDbila1, LOW);
+  digitalWrite(LEDbila2, LOW);
+  digitalWrite(bzucakGREEN, LOW); 
 }
